@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Niya Check-in</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1c2647;--navy2:#2a3766;--deep:#0d1330;--blue:#3b82f6;--blue2:#60a5fa;--sky:#eaf2fe;
+  --ink:#121829;--ink2:#3a4258;--mute:#7a8197;--line:#eceef3;--bg:#f6f7fb;--card:#fff;
+  --ok:#10a36f;--okbg:#e6f7f0;--warn:#e08a00;--warnbg:#fff5e0;--bad:#e5484d;--badbg:#fdecec;
+  --r:18px;--sh:0 1px 2px rgba(16,24,48,.04),0 4px 14px -6px rgba(16,24,48,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:Inter,-apple-system,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;
+  background:radial-gradient(1200px 600px at 15% -10%,#2a3a7a 0%,transparent 60%),radial-gradient(900px 600px at 110% 110%,#1d3d7a 0%,transparent 55%),var(--deep);
+  min-height:100vh;padding:34px 20px 40px}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+svg{display:block}
+
+/* stage */
+.intro{max-width:1000px;margin:0 auto 28px;color:#fff;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.brandline{display:flex;align-items:center;gap:12px}
+.mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--blue),#2563eb);display:grid;place-items:center;box-shadow:0 8px 20px -6px rgba(59,130,246,.6)}
+.intro h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.intro p{font-size:13.5px;color:#aab3d1;margin-top:3px}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chipbtn{font-size:12.5px;font-weight:600;color:#cdd4ec;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
+.chipbtn:hover{background:rgba(255,255,255,.12)}
+.sw{display:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px}
+.sw button{font-size:13px;font-weight:600;color:#cdd4ec;padding:8px 16px;border-radius:999px}
+.sw button.on{background:#fff;color:var(--navy)}
+
+.stage{display:flex;justify-content:center;gap:56px;align-items:flex-start;max-width:1000px;margin:0 auto}
+.dev{display:flex;flex-direction:column;align-items:center;gap:14px}
+.dev .cap{color:#fff;text-align:center}
+.dev .cap b{font-size:14px;font-weight:600;display:block}
+.dev .cap span{font-size:12.5px;color:#93a0c8}
+
+.phone{width:375px;height:780px;border-radius:54px;background:#0a0e1d;padding:11px;position:relative;
+  box-shadow:0 0 0 1.5px #2b3352,0 40px 80px -24px rgba(0,0,0,.7),inset 0 0 0 1px #3a4366}
+.screen{width:100%;height:100%;border-radius:44px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:108px;height:31px;border-radius:20px;background:#000;z-index:50}
+.sbar{height:50px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:6px 30px 0 34px;font-size:14.5px;font-weight:600;position:relative;z-index:40}
+.sbar .ic{display:flex;gap:5px;align-items:center}
+.app{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.app::-webkit-scrollbar{display:none}
+.ov{position:absolute;inset:0;pointer-events:none;z-index:30}
+.ov>*{pointer-events:auto}
+
+.panel{margin-top:4px;width:100%;max-width:375px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 14px;color:#cdd4ec;font-size:12.5px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel .seg{display:inline-flex;background:rgba(0,0,0,.25);border-radius:10px;padding:3px}
+.panel .seg button{font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;color:#aab3d1}
+.panel .seg button.on{background:#fff;color:var(--navy)}
+
+@media (max-width:900px){
+  body{padding:22px 14px 30px}
+  .sw{display:inline-flex}
+  .stage{gap:0}
+  .stage[data-show="emp"] #d-adm,.stage[data-show="adm"] #d-emp{display:none}
+  .intro{justify-content:center;text-align:center;flex-direction:column;align-items:center}
+}
+@media (max-width:430px){
+  body{padding:14px 0 20px}
+  .intro{flex-direction:row;justify-content:space-between;text-align:left;padding:0 16px;margin-bottom:14px;gap:10px}
+  .intro p{display:none}.intro h1{font-size:18px}.mark{width:34px;height:34px}
+  .ctrl{gap:6px}.chipbtn{padding:8px 10px;font-size:0}.chipbtn::before{content:"↺";font-size:15px}
+  .sw button{padding:7px 11px;font-size:12px}
+  .phone{width:100vw;height:calc(100svh - 170px);min-height:600px;border-radius:0;padding:0;box-shadow:none}
+  .screen{border-radius:0}.island{display:none}
+  .sbar{height:34px;padding:0 20px}
+  .panel{border-radius:0;max-width:none}
+  .dev .cap{display:none}
+}
+
+/* ---------- app ui ---------- */
+.top{padding:6px 20px 18px}
+.top .r{display:flex;justify-content:space-between;align-items:center}
+.top .hi{font-size:13px;color:var(--mute);font-weight:500}
+.top h2{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+.wrap{padding:0 16px 100px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:12px}
+.pad{padding:16px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:20px 4px 10px;display:flex;justify-content:space-between;align-items:center}
+.eyebrow a{letter-spacing:0;text-transform:none;font-weight:600;color:var(--blue);font-size:12.5px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.dot::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}.p-bad{background:var(--badbg);color:var(--bad)}.p-mute{background:#f0f1f5;color:var(--mute)}.p-blue{background:var(--sky);color:var(--blue)}
+
+/* shift */
+.minimap{height:104px;border-radius:var(--r) var(--r) 0 0;overflow:hidden;position:relative;background:#e9edf4}
+.shift .info{padding:14px 16px 16px}
+.shift h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.shift .addr{font-size:13px;color:var(--mute);margin-top:2px}
+.meta3{display:grid;grid-template-columns:1fr 1fr 1.4fr;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.meta3 span{display:block;font-size:11px;color:var(--mute);font-weight:500}
+.meta3 b{font-size:14.5px;font-weight:600}
+
+/* check button */
+.cwrap{display:flex;flex-direction:column;align-items:center;padding:20px 0 8px}
+.cbtn{width:158px;height:158px;border-radius:50%;position:relative;display:grid;place-items:center;color:#fff;
+  background:radial-gradient(circle at 30% 25%,#34d399,var(--ok) 60%);box-shadow:0 18px 40px -14px rgba(16,163,111,.8),inset 0 -6px 14px rgba(0,0,0,.12);transition:transform .12s}
+.cbtn:active{transform:scale(.97)}
+.cbtn::before,.cbtn::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:2px solid rgba(16,163,111,.35);animation:pulse 2.4s ease-out infinite}
+.cbtn::after{animation-delay:1.2s}
+@keyframes pulse{0%{transform:scale(.92);opacity:1}100%{transform:scale(1.18);opacity:0}}
+.cbtn .in{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:19px;font-weight:700}
+.cbtn.busy{background:radial-gradient(circle at 30% 25%,#7fb2ff,var(--blue) 60%);box-shadow:0 18px 40px -14px rgba(59,130,246,.8)}
+.cbtn.busy::before,.cbtn.busy::after{border-color:rgba(59,130,246,.35)}
+.spin{width:30px;height:30px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.cnote{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);margin-top:20px}
+
+/* active */
+.ring{width:190px;height:190px;position:relative;margin:18px auto 6px}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .t{font-size:32px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ring .l{font-size:12px;color:var(--mute);margin-top:2px}
+.stat{display:flex;gap:12px;align-items:center}
+.sico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}
+.stat b{display:block;font-size:14.5px;font-weight:600}
+.stat span{font-size:12.5px;color:var(--mute);line-height:1.4}
+.btn-out{width:100%;height:56px;border-radius:16px;background:var(--navy);color:#fff;font-size:16px;font-weight:600;box-shadow:0 10px 24px -12px rgba(28,38,71,.8)}
+.pop{animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+
+/* lists */
+.row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.row:last-child{border:0}
+.row .m{flex:1;min-width:0}
+.row .m b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .m span{font-size:12.5px;color:var(--mute);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tm{font-size:12px;color:var(--mute);text-align:right;font-variant-numeric:tabular-nums}
+.day{width:46px;flex:none;text-align:center;background:var(--bg);border-radius:12px;padding:7px 0}
+.day small{display:block;font-size:10px;color:var(--mute);text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+.day b{font-size:17px;font-weight:700}
+.day.on{background:var(--navy);color:#fff}.day.on small{color:#aab3d1}
+
+/* admin */
+.ahead{background:linear-gradient(180deg,var(--navy2),var(--navy));color:#fff;padding:6px 20px 22px}
+.ahead .hi{color:#9aa6cc}
+.ahead h2{color:#fff}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.kp div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:11px 12px}
+.kp b{display:block;font-size:24px;font-weight:700;letter-spacing:-.02em}
+.kp span{font-size:11.5px;color:#aab3d1;font-weight:500}
+.alert{margin:14px 0 4px;background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:14px;display:flex;gap:12px;border-left:4px solid var(--bad)}
+.alert b{font-size:14px;font-weight:700;display:block}
+.alert span{font-size:12.5px;color:var(--mute);display:block;margin-top:2px}
+.alert .acts{display:flex;gap:8px;margin-top:10px}
+.b{font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:10px;background:var(--navy);color:#fff}
+.b.g{background:var(--bg);color:var(--ink2)}
+.filters{display:flex;gap:6px;overflow-x:auto;margin:16px 0 10px;scrollbar-width:none}
+.filters button{font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:999px;background:#fff;color:var(--ink2);box-shadow:var(--sh);white-space:nowrap}
+.filters button.on{background:var(--navy);color:#fff}
+.filters button i{font-style:normal;opacity:.6;margin-left:3px}
+.bar{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;margin-top:7px}
+.bar div{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--navy2),var(--blue))}
+.big-btn{width:100%;height:52px;border-radius:14px;background:var(--navy);color:#fff;font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+.big-btn.l{background:#fff;color:var(--navy);box-shadow:var(--sh)}
+.new{animation:flash 1.6s ease}
+@keyframes flash{0%,40%{background:#eaf7f1}100%{background:transparent}}
+
+/* tabs */
+.tabs{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;padding:8px 14px 22px}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:#a3a9ba}
+.tabs button.on{color:var(--navy)}
+.tabs .badge{position:absolute;margin-left:18px;margin-top:-3px;min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;display:grid;place-items:center;padding:0 4px}
+
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(10,14,29,.45);display:flex;align-items:flex-end;animation:fd .2s}
+@keyframes fd{from{opacity:0}}
+.sheet{background:#fff;width:100%;border-radius:26px 26px 0 0;padding:10px 18px 30px;animation:up .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(60px);opacity:.4}}
+.grab{width:38px;height:5px;border-radius:3px;background:#dfe2ea;margin:0 auto 16px}
+.sheet h3{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.sheet p{font-size:13.5px;color:var(--mute);margin:6px 0 16px;line-height:1.45}
+.opt{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;padding:14px;border:1.5px solid var(--line);border-radius:14px;font-size:14px;font-weight:500;margin-bottom:8px}
+.opt .o{width:20px;height:20px;border-radius:50%;border:2px solid #cfd3de}
+.opt.on{border-color:var(--navy);background:#f5f7fc}.opt.on .o{border:6px solid var(--navy)}
+.big-btn:disabled{opacity:.35}
+.lnk{width:100%;padding:14px;font-size:14px;font-weight:600;color:var(--mute)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 14px}
+.kv div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.kv span{font-size:11px;color:var(--mute);display:block}
+.kv b{font-size:14px}
+.toast{position:absolute;left:14px;right:14px;bottom:96px;background:var(--ink);color:#fff;font-size:13px;font-weight:500;padding:13px 15px;border-radius:14px;display:flex;gap:10px;align-items:center;animation:up .25s;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
+.foot{max-width:1000px;margin:26px auto 0;text-align:center;font-size:12px;color:#7d89b3}
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <div class="brandline">
+    <div class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><path d="M9 9.2l2.2 2.2L15.2 7.4"/></svg></div>
+    <div><h1>Niya Check-in</h1><p>Inchecken op de werf, met locatiecontrole en live opvolging.</p></div>
+  </div>
+  <div class="ctrl">
+    <div class="sw"><button id="sw-emp" class="on" onclick="show('emp')">Medewerker</button><button id="sw-adm" onclick="show('adm')">Zaakvoerder</button></div>
+    <button class="chipbtn" onclick="resetAll()">↺ Demo opnieuw</button>
+  </div>
+</header>
+
+<main class="stage" id="stage" data-show="emp">
+  <section class="dev" id="d-emp">
+    <div class="phone"><div class="screen"><div class="island"></div>
+      <div class="sbar" id="sb-emp"></div><div class="app" id="app-emp"></div><div class="ov" id="ov-emp"></div>
+    </div></div>
+    <div class="panel"><span>Locatie simuleren</span><div class="seg" id="sim"></div></div>
+    <div class="cap"><b>App van de medewerker</b><span>Op de gsm, zonder App Store</span></div>
+  </section>
+  <section class="dev" id="d-adm">
+    <div class="phone"><div class="screen"><div class="island"></div>
+      <div class="sbar" id="sb-adm" style="color:#fff"></div><div class="app" id="app-adm"></div><div class="ov" id="ov-adm"></div>
+    </div></div>
+    <div class="cap"><b>Overzicht van de zaakvoerder</b><span>Op gsm of computer, live bijgewerkt</span></div>
+  </section>
+</main>
+<p class="foot">Demo met voorbeeldgegevens. Namen en locaties zijn fictief.</p>
+
+<script>
+const I={
+ home:'<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>',
+ cal:'<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+ clock:'<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+ pin:(s=23)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>`,
+ users:'<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5 6.5-5s5.7 1.5 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M17.5 14.5c2 .4 3.4 1.8 4 4.5"/></svg>',
+ chart:'<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V11M10 20V5M16 20v-7M21 20H3"/></svg>',
+ check:(s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
+ warn:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 8.5v4.5M12 16.5v.3"/><path d="M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>',
+ bell:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/></svg>',
+ lock:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+ phone:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg>',
+ dl:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+ plus:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+};
+const sbarIcons=c=>`<span class="ic"><svg width="18" height="12" viewBox="0 0 18 12" fill="${c}"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 4.5a9.5 9.5 0 0113 0M4 7.2a6 6 0 018 0"/><circle cx="8" cy="10" r="1.1" fill="${c}" stroke="none"/></svg><svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3.5" stroke="${c}" opacity=".45"/><rect x="2.2" y="2.2" width="16" height="7.6" rx="2" fill="${c}"/><rect x="24" y="4" width="1.6" height="4" rx=".8" fill="${c}" opacity=".45"/></svg></span>`;
+
+const fresh=()=>({
+  show:'emp',empTab:'home',admTab:'live',filter:'all',inZone:true,ackLate:false,
+  me:{state:'idle',flag:null},
+  sheet:{emp:null,adm:null},reason:null,toast:{emp:null,adm:null},flashSa:false,
+  staff:[
+    {id:'sa',n:'Samira El Idrissi',ini:'SE',loc:'Kantoor Hoogkamer',start:'08:00',end:'12:00',state:'idle',c:'#3b82f6'},
+    {id:'ka',n:'Karim Bouzid',ini:'KB',loc:'Bedrijvencentrum Noord',start:'07:30',end:'11:30',state:'late',late:28,c:'#e5484d'},
+    {id:'an',n:'Ana Petrova',ini:'AP',loc:'Residentie Parkzicht',start:'07:30',end:'10:30',state:'in',inAt:'07:41',flag:'Op de parking achteraan',dist:'220 m',c:'#8b5cf6'},
+    {id:'yo',n:'Youssef Amrani',ini:'YA',loc:'Wasserij Waasland',start:'06:00',end:'10:00',state:'in',inAt:'06:03',lateMin:3,dist:'18 m',c:'#e08a00'},
+    {id:'li',n:'Lien De Smet',ini:'LD',loc:'Basisschool De Linde',start:'07:00',end:'11:00',state:'in',inAt:'06:54',dist:'31 m',c:'#10a36f'},
+    {id:'to',n:'Tom Verhaegen',ini:'TV',loc:'Kantoor Hoogkamer',start:'08:00',end:'12:00',state:'in',inAt:'07:52',dist:'25 m',c:'#2a3766'},
+    {id:'ib',n:'Ibrahim Saidi',ini:'IS',loc:'Restaurant De Kade',start:'09:00',end:'12:00',state:'planned',c:'#64748b'},
+    {id:'el',n:'Els Maes',ini:'EM',loc:'Basisschool De Linde',start:'05:30',end:'07:30',state:'done',inAt:'05:28',outAt:'07:31',dist:'12 m',c:'#64748b'}
+  ]
+});
+let S=fresh(),tick=null,secs=0;
+const sam=()=>S.staff.find(x=>x.id==='sa');
+const fmt=s=>{const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return [h,m,x].map(v=>String(v).padStart(2,'0')).join(':')};
+
+function show(r){S.show=r;document.getElementById('stage').dataset.show=r;['emp','adm'].forEach(k=>document.getElementById('sw-'+k).classList.toggle('on',k===r))}
+function resetAll(){clearInterval(tick);secs=0;const sh=S.show;S=fresh();show(sh);render()}
+function toast(side,t){S.toast[side]=t;render();clearTimeout(toast[side]);toast[side]=setTimeout(()=>{S.toast[side]=null;render()},2600)}
+
+/* actions */
+function checkIn(){
+  if(S.me.state!=='idle')return;S.me.state='busy';render();
+  setTimeout(()=>{if(S.inZone)doIn(null);else{S.me.state='idle';S.sheet.emp='reason';S.reason=null;render()}},1400);
+}
+function doIn(flag){
+  S.me.state='in';S.me.flag=flag;S.sheet.emp=null;
+  Object.assign(sam(),{state:'in',inAt:'07:58',flag,dist:flag?'1,2 km':'42 m'});
+  S.flashSa=true;secs=0;clearInterval(tick);
+  tick=setInterval(()=>{secs+=41;const t=document.getElementById('tm');if(t)t.textContent=fmt(secs);const a=document.getElementById('arc');if(a)a.setAttribute('stroke-dashoffset',String(565-565*Math.min(secs/14400,1)))},1000);
+  render();toast('adm',(flag?'Samira ingecheckt buiten de zone':'Samira is ingecheckt bij Kantoor Hoogkamer'));
+  setTimeout(()=>{S.flashSa=false},1700);
+}
+function doOut(){clearInterval(tick);S.me.state='done';S.sheet.emp=null;Object.assign(sam(),{state:'done',outAt:'12:04'});S.flashSa=true;render();toast('adm','Samira heeft uitgecheckt, 4 u 06 gewerkt');setTimeout(()=>{S.flashSa=false},1700)}
+
+/* ---- minimap ---- */
+function miniMap(inZone,state){
+  const me=state==='idle'||state==='busy'?(inZone?[205,64]:[322,22]):state==='in'?(S.me.flag?[322,22]:[205,64]):null;
+  return `<svg viewBox="0 0 343 120" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+   <rect width="343" height="120" fill="#e8ecf3"/>
+   <path d="M-10 92 C80 70 170 110 360 60" stroke="#fff" stroke-width="12" fill="none"/>
+   <path d="M120 -10 C130 40 110 90 135 130" stroke="#fff" stroke-width="9" fill="none"/>
+   <path d="M260 -10 L280 130" stroke="#fff" stroke-width="6" fill="none"/>
+   <rect x="20" y="14" width="70" height="40" rx="6" fill="#dfe6d8"/><rect x="292" y="74" width="46" height="34" rx="6" fill="#dfe6d8"/>
+   <rect x="170" y="38" width="56" height="34" rx="5" fill="#d7dce7"/>
+   <circle cx="198" cy="58" r="42" fill="#3b82f6" fill-opacity=".1" stroke="#3b82f6" stroke-opacity=".5" stroke-dasharray="4 4"/>
+   <g transform="translate(198 58)"><path d="M0 -4c-5.5 0-10 4.3-10 9.7C-10 13 0 22 0 22s10-9 10-16.3C10 0.3 5.5-4 0-4z" transform="translate(0 -22)" fill="#1c2647"/><circle cy="-16" r="3.5" fill="#fff"/></g>
+   ${me?`<circle cx="${me[0]}" cy="${me[1]}" r="13" fill="#3b82f6" fill-opacity=".18"><animate attributeName="r" values="9;15;9" dur="2s" repeatCount="indefinite"/></circle><circle cx="${me[0]}" cy="${me[1]}" r="6.5" fill="#3b82f6" stroke="#fff" stroke-width="2.5"/>`:''}
+  </svg>`;
+}
+
+/* ---------- MEDEWERKER ---------- */
+function empHome(){
+  const st=S.me.state;
+  const head=`<div class="top"><div class="r"><div><div class="hi">Maandag 2 november</div><h2>Hallo, Samira</h2></div><div class="av" style="background:#dbe8fe;color:#2563eb">SE</div></div></div>`;
+  const pill=st==='in'?'<span class="pill dot p-ok">Bezig</span>':st==='done'?'<span class="pill dot p-mute">Afgerond</span>':'<span class="pill dot p-blue">Start over 2 min</span>';
+  const shift=`<div class="card shift"><div class="minimap">${miniMap(S.inZone,st)}</div><div class="info">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div><h3>Kantoor Hoogkamer</h3><div class="addr">Industriepark 12, Sint-Niklaas</div></div>${pill}</div>
+    <div class="meta3"><div><span>Start</span><b>08:00</b></div><div><span>Einde</span><b>12:00</b></div><div><span>Taak</span><b>Kantoren, 1e verd.</b></div></div></div></div>`;
+  let body='';
+  if(st==='idle'||st==='busy') body=`<div class="cwrap"><button class="cbtn ${st==='busy'?'busy':''}" onclick="checkIn()"><div class="in">${st==='busy'?'<div class="spin"></div><span style="font-size:15px">Locatie checken</span>':I.pin(34)+'Inchecken'}</div></button>
+    <div class="cnote">${I.lock} Je locatie wordt enkel nu gecontroleerd</div></div>`;
+  if(st==='in'){const f=S.me.flag;body=`
+    <div class="card pad pop"><div class="ring"><svg width="190" height="190" viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" fill="none" stroke="#eef0f5" stroke-width="12"/><circle id="arc" cx="100" cy="100" r="90" fill="none" stroke="${f?'#e08a00':'#10a36f'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="565" stroke-dashoffset="${565-565*Math.min(secs/14400,1)}" transform="rotate(-90 100 100)"/></svg>
+      <div class="c"><div class="t" id="tm">${fmt(secs)}</div><div class="l">van 4 u gepland</div></div></div>
+      <div class="stat" style="margin-top:10px;padding-top:14px;border-top:1px solid var(--line)"><div class="sico" style="background:${f?'var(--warnbg)':'var(--okbg)'};color:${f?'var(--warn)':'var(--ok)'}">${f?I.warn:I.check()}</div>
+      <div><b>Ingecheckt om 07:58</b><span>${f?'Buiten de zone. Reden: '+f.toLowerCase()+'.':'Op tijd, 42 m van de werf'}</span></div></div></div>
+    <button class="btn-out" onclick="S.sheet.emp='out';render()">Uitchecken</button>`}
+  if(st==='done') body=`<div class="card pad pop" style="text-align:center;padding:26px 16px">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--okbg);color:var(--ok);display:grid;place-items:center;margin:0 auto 12px">${I.check(30)}</div>
+      <b style="font-size:18px">Goed gewerkt, Samira</b><div style="font-size:13px;color:var(--mute);margin-top:4px">07:58 tot 12:04 · 4 u 06 min</div></div>
+    <div class="card"><div class="row"><div class="day"><small>di</small><b>3</b></div><div class="m"><b>Bedrijvencentrum Noord</b><span>Morgen, 08:00 tot 12:00</span></div></div></div>`;
+  return head+`<div class="wrap">${shift}${body}</div>`;
+}
+function empPlan(){
+  const d=[['ma','2','Kantoor Hoogkamer','08:00 tot 12:00'],['di','3','Bedrijvencentrum Noord','08:00 tot 12:00'],['wo','4','Kantoor Hoogkamer','08:00 tot 12:00'],['do','5','Residentie Parkzicht','13:00 tot 16:00'],['vr','6','Kantoor Hoogkamer','08:00 tot 12:00']];
+  return `<div class="top"><div class="hi">Week 45</div><h2>Planning</h2></div><div class="wrap"><div class="card">${d.map((x,i)=>`<div class="row"><div class="day ${i===0?'on':''}"><small>${x[0]}</small><b>${x[1]}</b></div><div class="m"><b>${x[2]}</b><span>${x[3]}</span></div>${i===0?'<span class="pill p-blue">Vandaag</span>':''}</div>`).join('')}</div>
+  <div class="eyebrow">Volgende week</div><div class="card"><div class="row"><div class="day"><small>ma</small><b>9</b></div><div class="m"><b>Kantoor Hoogkamer</b><span>08:00 tot 12:00</span></div></div></div></div>`;
+}
+function empHours(){
+  const today=S.me.state==='done'?'4 u 06':S.me.state==='in'?'bezig':'nog niet';
+  const wk=S.me.state==='done'?'4,1':'0,0';
+  return `<div class="top"><div class="hi">Overzicht</div><h2>Mijn uren</h2></div><div class="wrap">
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div class="card pad" style="margin:0"><div style="font-size:12px;color:var(--mute)">Deze week</div><div style="font-size:26px;font-weight:700;letter-spacing:-.02em">${wk} u</div></div><div class="card pad" style="margin:0"><div style="font-size:12px;color:var(--mute)">Oktober</div><div style="font-size:26px;font-weight:700;letter-spacing:-.02em">86,5 u</div></div></div>
+   <div class="card">${[['Ma 2/11','Kantoor Hoogkamer',today],['Vr 30/10','Kantoor Hoogkamer','4 u 02'],['Do 29/10','Residentie Parkzicht','3 u 05'],['Wo 28/10','Kantoor Hoogkamer','4 u 00'],['Di 27/10','Bedrijvencentrum Noord','3 u 58']].map(r=>`<div class="row"><div class="m"><b>${r[1]}</b><span>${r[0]}</span></div><div class="tm" style="font-size:14px;color:var(--ink);font-weight:600">${r[2]}</div></div>`).join('')}</div></div>`;
+}
+
+/* ---------- ZAAKVOERDER ---------- */
+function pillFor(s){
+  if(s.state==='in')return s.flag?'<span class="pill dot p-warn">Afwijking</span>':s.lateMin?'<span class="pill dot p-warn">'+s.lateMin+' min laat</span>':'<span class="pill dot p-ok">Binnen</span>';
+  if(s.state==='late')return `<span class="pill dot p-bad">${s.late} min te laat</span>`;
+  if(s.state==='done')return '<span class="pill p-mute">Klaar</span>';
+  if(s.state==='planned')return `<span class="pill p-mute">${s.start}</span>`;
+  return `<span class="pill dot p-blue">Start ${s.start}</span>`;
+}
+function subFor(s){
+  if(s.state==='in')return `${s.loc} · in om ${s.inAt}`;
+  if(s.state==='done')return `${s.loc} · ${s.inAt} tot ${s.outAt}`;
+  if(s.state==='late')return `${s.loc} · nog niet ingecheckt`;
+  return `${s.loc} · start ${s.start}`;
+}
+const cat=s=>s.state==='in'?(s.flag||s.lateMin?'dev':'in'):s.state==='late'?'late':'other';
+function admLive(){
+  const inn=S.staff.filter(s=>s.state==='in').length,late=S.staff.filter(s=>s.state==='late').length,dev=S.staff.filter(s=>s.flag||s.lateMin).length;
+  const k=S.staff.find(s=>s.id==='ka');
+  const F=[['all','Alle',S.staff.length],['in','Binnen',inn],['late','Te laat',late],['dev','Afwijkingen',dev]];
+  const list=S.staff.filter(s=>S.filter==='all'||(S.filter==='in'&&s.state==='in')||(S.filter==='late'&&s.state==='late')||(S.filter==='dev'&&(s.flag||s.lateMin)));
+  return `<div class="ahead"><div class="top" style="padding:0"><div class="r"><div><div class="hi">Maandag 2 november · 07:58</div><h2>Goedemorgen, Abdennour</h2></div><div class="av" style="background:rgba(255,255,255,.14);color:#fff">AE</div></div></div>
+    <div class="kp"><div><b style="color:#5eead4">${inn}</b><span>binnen</span></div><div><b style="color:#fca5a5">${late}</b><span>te laat</span></div><div><b>${S.staff.filter(s=>s.state==='idle'||s.state==='planned').length}</b><span>nog te starten</span></div></div></div>
+  <div class="wrap">
+    ${k.state==='late'&&!S.ackLate?`<div class="alert"><div style="color:var(--bad);padding-top:1px">${I.bell}</div><div style="flex:1"><b>Karim is ${k.late} min te laat</b><span>Bedrijvencentrum Noord, start 07:30. Nog niet ingecheckt.</span>
+      <div class="acts"><button class="b" style="display:flex;gap:6px;align-items:center" onclick="toast('adm','Karim wordt gebeld…')">${I.phone} Bellen</button><button class="b g" onclick="S.ackLate=true;render()">Gezien</button></div></div></div>`:''}
+    <div class="filters">${F.map(f=>`<button class="${S.filter===f[0]?'on':''}" onclick="S.filter='${f[0]}';render()">${f[1]}<i>${f[2]}</i></button>`).join('')}</div>
+    <div class="card">${list.map(s=>`<button class="row ${s.id==='sa'&&S.flashSa?'new':''}" onclick="S.sheet.adm='p:${s.id}';render()"><div class="av" style="background:${s.c}1a;color:${s.c}">${s.ini}</div><div class="m"><b>${s.n}</b><span>${subFor(s)}</span></div>${pillFor(s)}</button>`).join('')||'<div class="row"><div class="m"><span>Niemand in deze lijst</span></div></div>'}</div>
+  </div>`;
+}
+function admMap(){
+  const L=[['Kantoor Hoogkamer',96,72,'ok'],['Bedrijvencentrum Noord',252,46,'bad'],['Basisschool De Linde',66,160,'ok'],['Wasserij Waasland',282,150,'ok'],['Residentie Parkzicht',186,118,'warn'],['Restaurant De Kade',170,186,'mute']];
+  const col={ok:'#10a36f',bad:'#e5484d',warn:'#e08a00',mute:'#94a3b8'};
+  const lab={ok:'Bezet',bad:'Te laat',warn:'Afwijking',mute:'Om 09:00'};
+  const cnt=n=>S.staff.filter(s=>s.loc===n&&s.state==='in').length;
+  return `<div class="top"><div class="hi">6 actieve locaties</div><h2>Klantlocaties</h2></div><div class="wrap">
+   <div class="card" style="overflow:hidden;height:220px"><svg viewBox="0 0 343 220" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"><rect width="343" height="220" fill="#e8ecf3"/>
+    <path d="M-10 125 C80 100 150 145 360 95" stroke="#fff" stroke-width="12" fill="none"/><path d="M150 -10 C162 70 130 140 160 230" stroke="#fff" stroke-width="9" fill="none"/>
+    <path d="M0 38 L343 28" stroke="#fff" stroke-width="5" fill="none"/><path d="M232 -10 L252 230" stroke="#fff" stroke-width="5" fill="none"/>
+    <rect x="16" y="180" width="64" height="32" rx="6" fill="#dfe6d8"/><rect x="276" y="62" width="58" height="42" rx="6" fill="#dfe6d8"/>
+    ${L.map(l=>`<circle cx="${l[1]}" cy="${l[2]}" r="24" fill="${col[l[3]]}" fill-opacity=".12" stroke="${col[l[3]]}" stroke-opacity=".5" stroke-dasharray="3 3"/><circle cx="${l[1]}" cy="${l[2]}" r="7" fill="${col[l[3]]}" stroke="#fff" stroke-width="2.5"/>`).join('')}
+   </svg></div>
+   <div class="card">${L.map(l=>`<div class="row"><div class="sico" style="background:${col[l[3]]}1a;color:${col[l[3]]}">${I.pin(19)}</div><div class="m"><b>${l[0]}</b><span>Zone 150 m · ${cnt(l[0])} binnen</span></div><span class="pill dot ${l[3]==='ok'?'p-ok':l[3]==='bad'?'p-bad':l[3]==='warn'?'p-warn':'p-mute'}">${lab[l[3]]}</span></div>`).join('')}</div>
+   <button class="big-btn l" onclick="toast('adm','Nieuwe locatie: adres zoeken en zone instellen')">${I.plus} Locatie toevoegen</button></div>`;
+}
+function admHours(){
+  const extra=S.me.state==='done'?4.1:0;
+  const R=[['Kantoor Hoogkamer',62+extra],['Basisschool De Linde',48.5],['Wasserij Waasland',41],['Bedrijvencentrum Noord',36],['Residentie Parkzicht',22.5],['Restaurant De Kade',14]];
+  const tot=R.reduce((a,r)=>a+r[1],0),mx=Math.max(...R.map(r=>r[1])),f=v=>v.toFixed(1).replace('.',',');
+  return `<div class="top"><div class="hi">Week 44 en 45</div><h2>Uren per klant</h2></div><div class="wrap">
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div class="card pad" style="margin:0"><div style="font-size:12px;color:var(--mute)">Gepresteerd</div><div style="font-size:26px;font-weight:700;letter-spacing:-.02em">${f(tot)} u</div></div><div class="card pad" style="margin:0"><div style="font-size:12px;color:var(--mute)">Na te kijken</div><div style="font-size:26px;font-weight:700;letter-spacing:-.02em;color:var(--warn)">${S.staff.filter(s=>s.flag).length+1}</div></div></div>
+   <div class="card pad">${R.map(r=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13.5px"><span style="font-weight:500">${r[0]}</span><b>${f(r[1])} u</b></div><div class="bar"><div style="width:${r[1]/mx*100}%"></div></div></div>`).join('')}</div>
+   <button class="big-btn" onclick="toast('adm','Uren_week44-45.xlsx is gedownload')">${I.dl} Exporteren naar Excel</button></div>`;
+}
+
+/* ---------- sheets ---------- */
+function sheetEmp(){
+  if(S.sheet.emp==='reason'){const o=['De werf heeft een andere ingang','Ik sta op de parking','Gps werkt slecht binnen','Andere reden'];
+   return `<div class="scrim"><div class="sheet"><div class="grab"></div><div class="sico" style="background:var(--warnbg);color:var(--warn);margin-bottom:12px">${I.warn}</div><h3>Je bent niet op de werf</h3><p>Je staat ongeveer 1,2 km van Kantoor Hoogkamer. Je kan toch inchecken met een korte reden. Je zaakvoerder ziet dit.</p>
+   ${o.map(x=>`<button class="opt ${S.reason===x?'on':''}" onclick="S.reason='${x}';render()">${x}<span class="o"></span></button>`).join('')}
+   <button class="big-btn" style="margin-top:6px" ${S.reason?'':'disabled'} onclick="doIn(S.reason)">Toch inchecken</button><button class="lnk" onclick="S.sheet.emp=null;render()">Annuleren</button></div></div>`}
+  if(S.sheet.emp==='out')return `<div class="scrim"><div class="sheet"><div class="grab"></div><h3>Shift afsluiten?</h3><p>Je locatie wordt nog één keer gecontroleerd en je uren worden doorgestuurd.</p>
+   <div class="kv"><div><span>Ingecheckt</span><b>07:58</b></div><div><span>Gewerkt</span><b>4 u 06</b></div></div>
+   <button class="big-btn" onclick="doOut()">Ja, uitchecken</button><button class="lnk" onclick="S.sheet.emp=null;render()">Nog niet</button></div></div>`;
+  return '';
+}
+function sheetAdm(){
+  const v=S.sheet.adm;if(!v)return '';const s=S.staff.find(x=>'p:'+x.id===v);if(!s)return '';
+  const note=s.flag?`<div class="stat" style="background:var(--warnbg);border-radius:14px;padding:12px;margin-bottom:14px"><div style="color:var(--warn)">${I.warn}</div><div><b>Buiten de zone ingecheckt</b><span style="color:#8a5a00">Reden: ${s.flag.toLowerCase()} · afstand ${s.dist}</span></div></div>`:'';
+  return `<div class="scrim" onclick="if(event.target===this){S.sheet.adm=null;render()}"><div class="sheet"><div class="grab"></div>
+   <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px"><div class="av" style="width:48px;height:48px;background:${s.c}1a;color:${s.c};font-size:15px">${s.ini}</div><div><h3>${s.n}</h3><div style="font-size:13px;color:var(--mute)">${s.loc}</div></div></div>
+   ${note}
+   <div class="kv"><div><span>Gepland</span><b>${s.start} tot ${s.end}</b></div><div><span>Ingecheckt</span><b>${s.inAt||'nog niet'}</b></div><div><span>Uitgecheckt</span><b>${s.outAt||'nog niet'}</b></div><div><span>Afstand bij check-in</span><b>${s.dist||'onbekend'}</b></div></div>
+   ${s.flag?`<button class="big-btn" onclick="S.staff.find(x=>x.id==='${s.id}').flag=null;S.sheet.adm=null;render();toast('adm','Check-in goedgekeurd')">Goedkeuren</button>`:`<button class="big-btn" onclick="toast('adm','${s.n.split(' ')[0]} wordt gebeld…')">${I.phone} Bellen</button>`}
+   <button class="lnk" onclick="S.sheet.adm=null;render()">Sluiten</button></div></div>`;
+}
+
+function tabs(side){
+  const t=side==='emp'?[['home','Vandaag',I.home],['plan','Planning',I.cal],['hours','Uren',I.clock]]:[['live','Live',I.users],['map','Locaties',I.pin()],['hours','Uren',I.chart]];
+  const cur=side==='emp'?S.empTab:S.admTab;
+  const late=side==='adm'&&!S.ackLate&&S.staff.some(s=>s.state==='late');
+  return `<nav class="tabs">${t.map(x=>`<button class="${cur===x[0]?'on':''}" onclick="${side==='emp'?'S.empTab':'S.admTab'}='${x[0]}';render()">${x[2]}${x[0]==='live'&&late?'<span class="badge">1</span>':''}${x[1]}</button>`).join('')}</nav>`;
+}
+function render(){
+  const ae=document.getElementById('app-emp'),aa=document.getElementById('app-adm');
+  const se=ae.scrollTop,sa=aa.scrollTop;
+  ae.innerHTML=S.empTab==='home'?empHome():S.empTab==='plan'?empPlan():empHours();
+  aa.innerHTML=S.admTab==='live'?admLive():S.admTab==='map'?admMap():admHours();
+  ae.scrollTop=se;aa.scrollTop=sa;
+  document.getElementById('ov-emp').innerHTML=tabs('emp')+sheetEmp()+(S.toast.emp?`<div class="toast">${S.toast.emp}</div>`:'');
+  document.getElementById('ov-adm').innerHTML=tabs('adm')+sheetAdm()+(S.toast.adm?`<div class="toast"><span style="color:#5eead4">${I.check(18)}</span>${S.toast.adm}</div>`:'');
+  const t=S.me.state==='done'?'12:04':'7:58';
+  document.getElementById('sb-emp').innerHTML=`<span>${t}</span>${sbarIcons('#121829')}`;
+  document.getElementById('sb-adm').innerHTML=`<span>${t}</span>${sbarIcons('#ffffff')}`;
+  document.getElementById('sb-adm').style.background=S.admTab==='live'?'#2a3766':'transparent';document.getElementById('sb-adm').style.color=S.admTab==='live'?'#fff':'#121829';
+  if(S.admTab!=='live')document.getElementById('sb-adm').innerHTML=`<span>${t}</span>${sbarIcons('#121829')}`;
+  document.getElementById('sim').innerHTML=`<button class="${S.inZone?'on':''}" onclick="S.inZone=true;render()">Op de werf</button><button class="${!S.inZone?'on':''}" onclick="S.inZone=false;render()">1,2 km weg</button>`;
+}
+render();
+</script>
+</body>
+</html>
